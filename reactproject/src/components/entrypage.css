@@ -1,0 +1,25 @@
+
+.Main-Container {
+    display: flex;
+    flex-direction: row; /* Align images in a row */
+    justify-content: center; /* Align items horizontally in the center */
+    align-items: center; /* Align items vertically in the center */
+    margin: 20px; /* Add margin if needed */
+}
+
+.Person-Image,
+.visitor,
+.Employe {
+    margin: 0 10px; /* Adjust horizontal spacing between images */
+}
+
+.Person-Image img,
+.visitor img
+{
+    width: 280px; /* Set a specific width for the images */
+    height: auto; /* Maintain aspect ratio */
+}
+.Employe img{
+    width: 250px; /* Set a specific width for the images */
+    height: auto;
+}
