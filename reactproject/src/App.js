@@ -3,14 +3,28 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Header from "./components/Header";
-import Home from "./components/Home"; // Import your Home component or any other components you want to render
+import Home from "./components/entrypage";
+import AdminLogin from './components/Login';
+import Showcase from './components/Showcase';
 
 const App = () => {
   return (
-    <div>
-      <Header/>
-      <Home/>
-    </div>
+    <Router>
+      <div>
+        {/* Header will be visible on all routes */}
+        <Header />
+        
+        {/* Define routes */}
+        <Switch>
+          {/* Route for Login */}
+          <Route exact path="/" component={AdminLogin} /> {/* Set exact path for login */}
+          
+          {/* Route for MainScreen */}
+          <Route path="/main" component={Home} />
+          <Route path="/showcase" component={Showcase} />
+        </Switch>
+      </div>
+    </Router>
   );
 }
 
