@@ -57,9 +57,14 @@ const AdminLogin = () => {
 
     const handleLogin = () => {  
         if (username === 'admin' && password === 'admin123') {
-            alert('Login successful!');
+            alert('Admin Login successful!');
             window.location.href = '/main'; // Navigate to '/main' on successful login
-        } else {
+        }
+        else if(username == 'aiadmin' && password == 'aiadmin123') {
+            alert('AI Login successful');
+            window.location.href = '';
+        }
+         else {
             alert('Invalid username or password!');
         }
     };

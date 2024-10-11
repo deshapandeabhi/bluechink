@@ -1,0 +1,11 @@
+/* Ensure that you copy your respective assets to the public/assets folder */
+
+body {
+    margin: 0;
+    font-family: 'NTR', sans-serif;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  

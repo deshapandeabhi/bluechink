@@ -6,13 +6,11 @@
     align-items: center; /* Align items vertically in the center */
     margin: 20px; /* Add margin if needed */
 }
-
 .Person-Image,
 .visitor,
 .Employe {
     margin: 0 10px; /* Adjust horizontal spacing between images */
 }
-
 .Person-Image img,
 .visitor img
 {
