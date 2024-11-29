@@ -17,16 +17,79 @@ import axios from 'axios';
 import { downloadExcel } from './DownloadExcel';
 import * as XLSX from "xlsx";
 
+class PersonStatus {
+  constructor(comment, check, name, status,personType) {
+    this.comment = comment;
+    this.check = check;
+    this.name = name;
+    this.status = status;
+    this.personType = personType
+  }
+
+  static fromJson(json) {
+    return new PersonStatus(
+      json['comments'] == null ? 'NOT PROVIDED' : json['comments'],
+      json['compliance_check']== null ? 'NOT PROVIDED' : json['compliance_check'],
+      json['name']== null ? 'NOT PROVIDED' : json['name'],
+      json['status']== null ? 'NOT PROVIDED' : json['status'],
+      json['person_type']== null ? 'NOT PROVIDED' : json['person_type'],
+    );
+  }
+}
+
+// class RFIDResponseModel {
+//   constructor(visitorComment, visitorComplianceCheck, visitorName, visitorStatus, workerComment, workerComplianceCheck, workerName, workerStatus, bootssmall, glovessmall, whiteHelmet, yellowHelmet, greenJacket, redJacket) {
+//     this.visitorComment = visitorComment;
+//     this.visitorComplianceCheck = visitorComplianceCheck;
+//     this.visitorName = visitorName;
+//     this.visitorStatus = visitorStatus;
+//     this.workerComment = workerComment;
+//     this.workerComplianceCheck = workerComplianceCheck;
+//     this.workerName = workerName;
+//     this.workerStatus = workerStatus;
+//     this.bootssmall = bootssmall;
+//     this.glovessmall = glovessmall;
+//     this.whiteHelmet = whiteHelmet;
+//     this.yellowHelmet = yellowHelmet;
+//     this.greenJacket = greenJacket;
+//     this.redJacket = redJacket;
+//   }
+
+//   static fromJson(json) {
+//     return new RFIDResponseModel(
+//       json['visitor_status']['comments'],
+//       json['visitor_status']['compliance_check'],
+//       json['visitor_status']['name'],
+//       json['visitor_status']['status'],
+//       json['worker_status']['comments'],
+//       json['worker_status']['compliance_check'],
+//       json['worker_status']['name'] || 'Not Mentioned',
+//       json['worker_status']['status'],
+//       json['item_statuses']['Boots, Small'],
+//       json['item_statuses']['Gloves, Small'],
+//       json['item_statuses']['Helmet, White'],
+//       json['item_statuses']['Helmet, Yellow'],
+//       json['item_statuses']['Jacket, Green'],
+//       json['item_statuses']['Jacket, Red']
+//     );
+//   }
+// }
+
 class RFIDResponseModel {
-  constructor(visitorComment, visitorComplianceCheck, visitorName, visitorStatus, workerComment, workerComplianceCheck, workerName, workerStatus, bootssmall, glovessmall, whiteHelmet, yellowHelmet, greenJacket, redJacket) {
-    this.visitorComment = visitorComment;
-    this.visitorComplianceCheck = visitorComplianceCheck;
-    this.visitorName = visitorName;
-    this.visitorStatus = visitorStatus;
-    this.workerComment = workerComment;
-    this.workerComplianceCheck = workerComplianceCheck;
-    this.workerName = workerName;
-    this.workerStatus = workerStatus;
+  constructor(
+    personStatuses, 
+    // visitorComment, visitorComplianceCheck, visitorName, visitorStatus, workerComment, workerComplianceCheck, workerName, workerStatus, 
+    bootssmall, glovessmall, whiteHelmet, yellowHelmet, greenJacket, redJacket
+  ) {
+    this.personStatuses = personStatuses;
+    // this.visitorComment = visitorComment;
+    // this.visitorComplianceCheck = visitorComplianceCheck;
+    // this.visitorName = visitorName;
+    // this.visitorStatus = visitorStatus;
+    // this.workerComment = workerComment;
+    // this.workerComplianceCheck = workerComplianceCheck;
+    // this.workerName = workerName;
+    // this.workerStatus = workerStatus;
     this.bootssmall = bootssmall;
     this.glovessmall = glovessmall;
     this.whiteHelmet = whiteHelmet;
@@ -36,15 +99,39 @@ class RFIDResponseModel {
   }
 
   static fromJson(json) {
+    let visitorComment = '';
+    let visitorCheck = '';
+    let visitorName = '';
+    let visitorStatus = '';
+    let workerComment = '';
+    let workerCheck = '';
+    let workerName = '';
+    let workerStatus = '';
+
+    // json['person_statuses'].forEach((x) => {
+    //   if (x['Person'] === 'Visitor') {
+    //     visitorComment = x['comments'];
+    //     visitorCheck = x['compliance_check'];
+    //     visitorName = x['name'];
+    //     visitorStatus = x['status'];
+    //   } else {
+    //     workerComment = x['comments'];
+    //     workerCheck = x['compliance_check'];
+    //     workerName = x['name'];
+    //     workerStatus = x['status'];
+    //   }
+    // });
+    const personStatuses = json['person_statuses'].map((status) => PersonStatus.fromJson(status));
     return new RFIDResponseModel(
-      json['visitor_status']['comments'],
-      json['visitor_status']['compliance_check'],
-      json['visitor_status']['name'],
-      json['visitor_status']['status'],
-      json['worker_status']['comments'],
-      json['worker_status']['compliance_check'],
-      json['worker_status']['name'] || 'Not Mentioned',
-      json['worker_status']['status'],
+      personStatuses,
+      // json['visitor_status']['comments'],
+      // json['visitor_status']['compliance_check'],
+      // json['visitor_status']['name'],
+      // json['visitor_status']['status'],
+      // json['worker_status']['comments'],
+      // json['worker_status']['compliance_check'],
+      // json['worker_status']['name'],
+      // json['worker_status']['status'],
       json['item_statuses']['Boots, Small'],
       json['item_statuses']['Gloves, Small'],
       json['item_statuses']['Helmet, White'],
@@ -52,6 +139,17 @@ class RFIDResponseModel {
       json['item_statuses']['Jacket, Green'],
       json['item_statuses']['Jacket, Red']
     );
+  }
+
+  toJson() {
+    return {
+      'Boots, Small': this.bootssmall,
+      'Gloves, Small': this.glovessmall,
+      'Helmet, White': this.whiteHelmet,
+      'Helmet, Yellow': this.yellowHelmet,
+      'Jacket, Green': this.greenJacket,
+      'Jacket, Red': this.redJacket
+    }
   }
 }
 
@@ -90,8 +188,8 @@ class AIResponseModel {
 }
 
 
-const AI_URL = 'http://98.130.71.23:3333/latest_detections';
-const RFID_URL = 'http://98.130.71.23:3333/latest_rfid_detections';
+const AI_URL = 'http://13.232.8.185:3333/latest_detections';
+const RFID_URL = 'http://13.232.8.185:3333/latest_rfid_detections';
 
 const AIDashBoard = () => {
   const [personImage, setPersonImage] = useState(null);
@@ -122,7 +220,7 @@ const AIDashBoard = () => {
 
     const fetchLiveStream = async () => {
       try {
-        const response = await axios.get('http://98.130.71.23:3333/latest_frame');
+        const response = await axios.get('http://13.232.8.185:3333/latest_frame');
         // console.error(response)
         setLiveStream(response); // Assuming response is in the right format
       } catch (error) {
@@ -198,7 +296,7 @@ const AIDashBoard = () => {
 
     return (
       <>
-        <img src={icon1} alt="Icon 1" style={{ ...styles.icon, filter: getIconColor(yellowHelmet) }} />
+        <img src={icon1} alt="Icon 1" style={{ ...styles.icon, filter: getIconColor(whiteHelmet) }} />
         <img src={icon2} alt="Icon 2" style={{ ...styles.icon, filter: getIconColor(redJacket) }} />
         <img src={icon3} alt="Icon 3" style={{ ...styles.icon, filter: getIconColor(glovessmall) }} />
         <img src={icon4} alt="Icon 4" style={{ ...styles.icon, filter: getIconColor(bootssmall) }} />
@@ -267,7 +365,7 @@ const AIDashBoard = () => {
 
       <div style={styles.mainrow}>
         <div style={styles.leftColumn}>
-          <InputTextFieldV hintText={rfidData?.visitorStatus === 'Present' ? rfidData.visitorName : rfidData?.workerStatus === 'Present' ? rfidData.workerName : 'N/A'} icon={person} />
+          <InputTextFieldV hintText={rfidData?.visitorStatus === 'Present' ? rfidData.personStatuses[0].name : rfidData?.workerStatus === 'Present' ? rfidData.personStatuses[0].name : 'N/A'} icon={person} />
           <InputTextFieldV hintText="Employee Type" icon={employType} />
           {/* <InputTextFieldV hintText="Complent" icon={complent} /> */}
           {/* <div style={{
@@ -352,7 +450,7 @@ const AIDashBoard = () => {
             title="Inline Frame Example"
             width="100%"
             height="100%"
-            src='http://98.130.71.23:3333/video_stream'>
+            src='http://13.232.8.185:3333/video_stream'>
           </iframe>
           {/* <ReactPlayer
           url="http://192.168.1.7:5010/video_feed" // Replace with your MPEG-DASH stream URL

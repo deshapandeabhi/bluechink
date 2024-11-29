@@ -9,36 +9,44 @@ import icon3 from '../assets/Component 3.png';
 import icon4 from '../assets/Component 4.png';
 import download from '../assets/download.png';
 import * as XLSX from "xlsx";
+import addIcon from '../assets/addIcon.png';
+import deepSound from '../assets/deep_sound.mp3';
 
 class PersonStatus {
-  constructor(comment, check, name, status) {
+  constructor(comment, check, name, status, personType) {
     this.comment = comment;
     this.check = check;
     this.name = name;
     this.status = status;
+    this.personType = personType
   }
 
   static fromJson(json) {
     return new PersonStatus(
-      json['comments'],
-      json['compliance_check'],
-      json['name'],
-      json['status']
+      json['comments'] == null ? 'NOT PROVIDED' : json['comments'],
+      json['compliance_check'] == null ? 'NOT PROVIDED' : json['compliance_check'],
+      json['name'] == null ? 'NOT PROVIDED' : json['name'],
+      json['status'] == null ? 'NOT PROVIDED' : json['status'],
+      json['person_type'] == null ? 'NOT PROVIDED' : json['person_type'],
     );
   }
 }
 
 class RFIDResponseModel {
-  constructor(personStatuses, visitorComment, visitorComplianceCheck, visitorName, visitorStatus, workerComment, workerComplianceCheck, workerName, workerStatus, bootssmall, glovessmall, whiteHelmet, yellowHelmet, greenJacket, redJacket) {
+  constructor(
+    personStatuses,
+    // visitorComment, visitorComplianceCheck, visitorName, visitorStatus, workerComment, workerComplianceCheck, workerName, workerStatus, 
+    bootssmall, glovessmall, whiteHelmet, yellowHelmet, greenJacket, redJacket
+  ) {
     this.personStatuses = personStatuses;
-    this.visitorComment = visitorComment;
-    this.visitorComplianceCheck = visitorComplianceCheck;
-    this.visitorName = visitorName;
-    this.visitorStatus = visitorStatus;
-    this.workerComment = workerComment;
-    this.workerComplianceCheck = workerComplianceCheck;
-    this.workerName = workerName;
-    this.workerStatus = workerStatus;
+    // this.visitorComment = visitorComment;
+    // this.visitorComplianceCheck = visitorComplianceCheck;
+    // this.visitorName = visitorName;
+    // this.visitorStatus = visitorStatus;
+    // this.workerComment = workerComment;
+    // this.workerComplianceCheck = workerComplianceCheck;
+    // this.workerName = workerName;
+    // this.workerStatus = workerStatus;
     this.bootssmall = bootssmall;
     this.glovessmall = glovessmall;
     this.whiteHelmet = whiteHelmet;
@@ -102,7 +110,7 @@ class RFIDResponseModel {
   }
 }
 
-const BACKEND_URL = 'http://98.130.71.23:3333/latest_rfid_detections';
+const BACKEND_URL = 'http://13.232.8.185:3333/latest_rfid_detections';
 
 const AdminDashBoard = () => {
   const [rfidData, setRfidData] = useState(null);
@@ -110,6 +118,9 @@ const AdminDashBoard = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const pageController = useRef(null); // Equivalent to PageController
   const pagelength = rfidData?.personStatuses?.length || 0;
+  const [allTrue, setAllTrue] = useState(true);
+  const [isUserInteracted, setIsUserInteracted] = useState(false);
+  const [audio] = useState(new Audio(deepSound));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,9 +139,64 @@ const AdminDashBoard = () => {
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, []);
 
+  useEffect(() => {
+    const enableAudioPlayback = () => {
+      audio.load(); // Ensure audio is ready for playback
+      document.removeEventListener('click', enableAudioPlayback); // Cleanup event
+    };
+
+    document.addEventListener('click', enableAudioPlayback); // Allow audio playback on user interaction
+
+    return () => document.removeEventListener('click', enableAudioPlayback);
+  }, [audio]);
+
+  useEffect(() => {
+    let interval;
+
+    if (!allTrue) {
+      const playAudio = () => {
+        audio.play().catch(err => console.error('Error playing audio:', err));
+      };
+      playAudio(); // Play immediately
+      interval = setInterval(playAudio, audio.duration * 1000); // Repeat after audio duration
+    }
+
+    return () => {
+      if (interval) clearInterval(interval); // Clear interval when allTrue changes or component unmounts
+    };
+  }, [allTrue, audio]);
+
+  useEffect(() => {
+    if (!rfidData) return;
+
+    const personStatus = rfidData.personStatuses[currentPage];
+    const { whiteHelmet, redJacket, glovessmall, bootssmall, yellowHelmet, greenJacket } = rfidData;
+
+    if (personStatus.personType === 'visitor') {
+      const isVisitorAllTrue =
+        whiteHelmet === 'Present' &&
+        redJacket === 'Present' &&
+        glovessmall === 'Present' &&
+        bootssmall === 'Present';
+      setAllTrue(isVisitorAllTrue);
+    } else {
+      const isNonVisitorAllTrue =
+        yellowHelmet === 'Present' &&
+        greenJacket === 'Present' &&
+        glovessmall === 'Present' &&
+        bootssmall === 'Present';
+      setAllTrue(isNonVisitorAllTrue);
+    }
+  }, [rfidData, currentPage]);
+
+
   const handleHomeClick = () => {
     alert('Home button clicked!');
     window.location.href = '/homelist';
+  };
+  const handleAdd = () => {
+    alert('Register new person');
+    window.location.href = 'registeremployee';        //'/registerdashboard';
   };
 
   const handlePageClick = (index) => {
@@ -144,16 +210,30 @@ const AdminDashBoard = () => {
     }
   };
 
+  // const handleRegisterClick = (type) => {
+  //   alert(`Registering ${type}!`);
+  //   if(type == 'Employee') {
+  //       window.location.href = 'registeremployee'
+  //   }
+  //   else if(type == 'Visitor') {
+  //       window.location.href = '/registervisitor'
+  //   }
+  //   else {
+  //       window.location.href = '/registerworker'
+  //   }
+  // };
+
   const getIconColor = (itemStatus) => {
     return itemStatus === 'Present' ? 'hue-rotate(90deg) brightness(0.8)' : 'hue-rotate(0deg) brightness(0.8)';
   };
 
   const renderIcons = () => {
     if (!rfidData) return null;
+    const personStatus = rfidData.personStatuses[currentPage];
 
     const { visitorStatus, whiteHelmet, redJacket, glovessmall, bootssmall, yellowHelmet, greenJacket } = rfidData;
 
-    if (visitorStatus === 'Present') {
+    if (personStatus.personType === 'visitor') {
       return (
         <>
           <img src={icon1} alt="Icon 1" style={{ ...styles.icon, filter: getIconColor(whiteHelmet) }} />
@@ -250,12 +330,12 @@ const AdminDashBoard = () => {
             />
           </div>
           <InputTextFieldV hintText="Download" icon={download} />
-          
+
           {/* Pagination Buttons Below the Download Button */}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
             {Array.from({ length: pagelength }).map((_, index) => (
               <div
-                key={`page-button-${index}`} 
+                key={`page-button-${index}`}
                 onClick={() => handlePageClick(index)}
                 style={{
                   cursor: 'pointer',
@@ -326,10 +406,10 @@ const AdminDashBoard = () => {
         <button style={styles.button}>
           <span style={styles.buttonText}>Employee</span>
         </button>
-        <button style={getWorkerButtonStyle(rfidData?.workerStatus === 'Present', rfidData?.visitorStatus === 'Present')}>
+        <button style={getWorkerButtonStyle(rfidData?.personStatuses?.[currentPage]?.personType === 'worker', rfidData?.personStatuses?.[currentPage]?.personType === 'visitor')}>
           <span style={styles.buttonText}>Worker</span>
         </button>
-        <button style={getButtonStyle(rfidData?.visitorStatus === 'Present')}>
+        <button style={getButtonStyle(rfidData?.personStatuses?.[currentPage]?.personType === 'visitor')}>
           <span style={styles.buttonText}>Visitor</span>
         </button>
       </div>
@@ -436,8 +516,23 @@ const AdminDashBoard = () => {
         </div> */}
 
       </div>
-
-      <img onClick={handleHomeClick} src={homeIcon} alt="Home" style={styles.homeIcon} />
+      {/* Now directly navigating to register screen */}
+      {/* <img onClick={handleHomeClick} src={homeIcon} alt="Home" style={styles.homeIcon} /> */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '100px',
+          cursor: 'pointer',
+          width: "20px",
+          height: "20px",
+          borderRadius: "50%",
+          backgroundColor: allTrue ? "green" : "red",
+          display: "inline-block",
+          marginBottom: "10px",
+        }}
+      ></div>
+      <img src={addIcon} alt="Add" style={styles.homeIcon} aria-label="Add" onClick={handleAdd} />
 
       {/* Display RFID data  */}
       {/* <div style={styles.rfidContainer}>
@@ -480,7 +575,7 @@ const styles = {
     width: '218px',
     height: '54px',
     borderRadius: '10px',
-    background: '#2D119C',
+    backgroundColor: '#2D119C', // Use backgroundColor for solid colors
     border: 'none',
     color: '#ffffff',
     fontSize: '32px',
@@ -563,6 +658,14 @@ const styles = {
     color: 'white',
   },
   homeIcon: {
+    position: 'absolute',
+    top: '10px',
+    right: '20px',
+    width: '52px',
+    height: '48px',
+    cursor: 'pointer',
+  },
+  alertlight: {
     position: 'absolute',
     top: '10px',
     right: '20px',
