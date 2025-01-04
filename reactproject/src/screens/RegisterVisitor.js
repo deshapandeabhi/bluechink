@@ -12,7 +12,7 @@ const RegistrationOfVisitor = () => {
   const [company, setCompany] = useState('');
   const [department, setDepartment] = useState('');
   const [address, setAddress] = useState('');
-  console.log('Checking conflicts 1');
+  console.log('Checking conflicts 3');
   console.log('Checking conflicts 2');
   const handleHomeClick = () => {
     // Handle the navigation to "1(1)" here
