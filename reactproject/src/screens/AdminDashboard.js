@@ -175,9 +175,11 @@ const AdminDashBoard = () => {
     if (personStatus.personType === 'visitor') {
       const isVisitorAllTrue =
         whiteHelmet === 'Present' &&
-        redJacket === 'Present' &&
-        glovessmall === 'Present' &&
-        bootssmall === 'Present';
+        redJacket === 'Present' 
+        // &&
+        // glovessmall === 'Present' &&
+        // bootssmall === 'Present'
+        ;
       setAllTrue(isVisitorAllTrue);
     } else {
       const isNonVisitorAllTrue =
