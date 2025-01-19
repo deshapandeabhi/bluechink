@@ -4,7 +4,7 @@ import VoltasLogo from '../assets/Voltas 2.png';
 import HomeIcon from '../assets/Home 1.png';
 
 const RegistrationOfVisitor = () => {
-  const [firstName, setFirstName] = useState('BLABLA');
+  const [firstName, setFirstName] = useState('ALAALA');
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
