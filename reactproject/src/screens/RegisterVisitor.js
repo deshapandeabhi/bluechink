@@ -4,7 +4,7 @@ import VoltasLogo from '../assets/Voltas 2.png';
 import HomeIcon from '../assets/Home 1.png';
 
 const RegistrationOfVisitor = () => {
-  const [firstName, setFirstName] = useState('');
+  const [firstName, setFirstName] = useState('BLABLA');
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -12,7 +12,7 @@ const RegistrationOfVisitor = () => {
   const [company, setCompany] = useState('');
   const [department, setDepartment] = useState('');
   const [address, setAddress] = useState('');
-  console.log('Checking conflicts 3');
+  console.log('Checking conflicts ');
   console.log('Checking conflicts 2');
   const handleHomeClick = () => {
     // Handle the navigation to "1(1)" here
